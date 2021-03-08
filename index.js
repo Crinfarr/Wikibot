@@ -4,47 +4,49 @@ const Discord = require('discord.js');
 const wikipedia = new wikisearch();
 const client = new Discord.Client()
 
-function search(query) {
-    wikipedia.search(query).then((wikipage, image) => {
-        lines = wikipage.extract
-            .replace(/\./g, '.\n')
-            .trim()
-            .split('\n')
-            .slice(
-                0,
-                wikipage.extract
-                    .replace(/\./g, '.\n')
-                    .trim()
-                    .split('\n')
-                    .indexOf('')
-            );
-        lines.forEach(element => {
-            element.trim();
-        });
-        console.log(wikipage, image)
-        /* return {
-            title: wikipage.title,
-            body: lines
-        } */
-    });
-}
-
 client.on('ready', () => {
     console.log('logged in as ' + client.user.tag)
 });
+
+async function sendarticle(msg, args) {
+    msg.channel.startTyping();
+    wikipedia.search(args.slice(1).join(' ')).then(([page, image, lines, url]) => {
+        emb = new Discord.MessageEmbed();
+        //console.log('page:');
+        //console.log(page);
+        //console.log('imageurl:');
+        //console.log(image);
+        //console.log('lines:');
+        //console.log(lines);
+        emb.setColor('#ffffff')
+            .setTitle(page.title)
+            .setTimestamp()
+            .setURL(url)
+            .setDescription(lines.join('\n\n'))
+            .setFooter('made by crinfarr#3251', 'https://cdn.discordapp.com/avatars/302211105151778826/b1c144918577ac5db00585235b83ec27.png');
+        if (image !== undefined)
+            emb.setThumbnail(image.toString());
+        if (lines.join('\n\n').length >= 2048) {
+            emb.setDescription(lines.join('\n\n').substring(0, 2043) + '[...]');
+        }
+        msg.channel.send(emb);
+        msg.channel.stopTyping();
+    }).catch(err => {
+        msg.channel.send("❌ can't find a wiki!");
+        msg.channel.stopTyping(true);
+        console.error(err);
+    });
+}
 
 client.on('message', msg => {
     if (msg.author.bot) return;
     if (!msg.content.startsWith('--')) return;
     args = msg.content.split(' ')
-    console.log(args)
     switch (args[0]) {
-        case wiki:
-            msg.channel.startTyping()
-            search(args[1]).then((wiki, image) => {
-                emb = new Discord.MessageEmbed()
-            })
+        case '--wiki':
+            sendarticle(msg, args);
+            console.log(`${msg.author.tag} called for an article on ${msg.content.slice(1).join(' ')} at ${new Date()}`)
     }
 })
 
-client.login();
+client.login('');

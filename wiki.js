@@ -21,30 +21,49 @@ class wikisearch {
                         'limit': 3
                     }
                 }).then(res => {
-                    //console.log(res);
                     let title = res.data[1][0];
                     axios.get(this.apiURL, {
                         params: {
                             'action': 'query',
                             'format': 'json',
                             'titles': title,
-                            'prop': 'extracts',
+                            'prop': 'extracts|info',
+                            'inprop': 'url',
                             'exintro': true,
                             'explaintext': true
                         }
+                    }).catch(err => {
+                        reject('error when getting pages');
                     }).then(res => {
+                        //console.log('page')
                         //console.log(res);
-                        let page = res.data.query.pages[Object.keys(res.data.query.pages)[0]]
-                        /*axios.get(this.apiURL, {
+                        let page = res.data.query.pages[Object.keys(res.data.query.pages)[0]];
+                        let url = res.data.query.pages[Object.keys(res.data.query.pages)[0]].fullurl
+                        let lines = page.extract
+                            .replace(/\. /g, '.\n')
+                            .trim()
+                            .split('\n')
+                            .slice(
+                                0,
+                                page.extract
+                                    .replace(/\. /g, '.\n')
+                                    .trim()
+                                    .split('\n')
+                                    .indexOf('')
+                            );
+                        axios.get(this.apiURL, {
                             params: {
                                 'action': 'query',
                                 'format': 'json',
                                 'prop': 'images',
                                 'pageids': Object.keys(res.data.query.pages)[0]
                             }
-                        }).then(image => {
-                            let filename = image.data.query.pages[Object.keys(image.data.query.pages)[0]].images[0].title
-                            console.log(filename)
+                        }).catch(err => {
+                            resolve([page, undefined, lines, url]);
+                        }).then(imagearr => {
+                            //console.log(imagearr);
+                            let filename = imagearr.data.query.pages[Object.keys(imagearr.data.query.pages)[0]].images[0].title
+                            //console.log(filename)
                             axios.get(this.apiURL, {
                                 params: {
                                     'action': 'query',
@@ -53,17 +72,20 @@ class wikisearch {
                                     'iiprop': 'url',
                                     'titles': filename
                                 }
+                            }).catch(err => {
+                                resolve([page, undefined, lines, url]);
                             }).then(res => {
-                                console.log(res.data.query.pages['-1'].imageinfo[0].url);
-                            }) */
-                        //resolve(page, image);
-                        resolve(page)
-                    });
-                    /*resolve({
-                        title: page.title,
-                        text: page.text,
-                        text_S: page.text.replace(/\./g, '\n.').split('\n')
-                    })*/
+                                let image = res.data.query.pages['-1'].imageinfo[0].url;
+                                resolve([page, image, lines, url]);
+                            }).catch(err => {
+                                resolve([page, undefined, lines, url]);
+                            });
+                        }).catch(err => {
+                            resolve([page, undefined, lines, url]);
+                        });
+                    }).catch(err => {
+                        reject('error when creating response')
+                    })
                 })
             })
         }
