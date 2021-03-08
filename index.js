@@ -8,9 +8,9 @@ client.on('ready', () => {
     console.log('logged in as ' + client.user.tag)
     client.user.setPresence({
         activity: {
-            name: 'for --wiki',
+            name: '--wiki',
             type: 'LISTENING',
-            url: 'https://discord.com/oauth2/authorize?client_id=527923239050149898&scope=bot&permissions=52224'
+            url: 'https://discord.com/oauth2/authorize?client_id=818573987881156618&scope=bot&permissions=52224'
         },
         afk: false,
         status: 'online'
